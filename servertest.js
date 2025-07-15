@@ -1,10 +1,9 @@
 
 async function startApplication() {
-    // Note: The .default is needed because MyWebSocketServer is exported as default.
-    // If it were a named export, you'd use: const { MyWebSocketServer } = await import('./packages/server/dist/index.js');
+  
     const { default: MyWebSocketServer } = await import('./packages/server/dist/index.js');
 
-    const WS_PORT = process.env.WS_PORT ? parseInt(process.env.WS_PORT) : 8080;
+    const WS_PORT =  8080;
     const WS_PATH = process.env.WS_PATH || '/websocket';
 
     const server = new MyWebSocketServer(WS_PORT, WS_PATH);
@@ -12,7 +11,7 @@ async function startApplication() {
     server.start()
         .then(() => {
             console.log(`Server is running at port ${WS_PORT} with path ${WS_PATH}.`);
-            console.log('Connect your client (e.g., test-client.html) to ws://localhost:8080/websocket');
+        
         })
         .catch(err => {
             console.error('Failed to start server:', err);

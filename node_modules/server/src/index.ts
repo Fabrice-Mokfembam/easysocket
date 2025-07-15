@@ -28,7 +28,7 @@ class MyWebSocketServer {
      * Starts the WebSocket server.
      * @returns {Promise<void>} 
      */
-    
+
     start(): Promise<void> {
         return new Promise((resolve, reject) => {
             this.wss = new WebSocketServer({ port: this.port, path: this.path });
@@ -128,8 +128,8 @@ class MyWebSocketServer {
 
     /**
      * Sends a structured message to a specific client.
-     * @param {WebSocket} ws - The WebSocket instance of the client.
-     * @param {WebSocketMessage} message - The message object to send.
+     * @param {WebSocket} ws 
+     * @param {WebSocketMessage} message 
      */
 
     sendMessage(ws: WebSocket, message: WebSocketMessage): void {
@@ -142,7 +142,7 @@ class MyWebSocketServer {
 
     /**
      * Broadcasts a structured message to all currently connected clients.
-     * @param {WebSocketMessage} message - The message object to broadcast.
+     * @param {WebSocketMessage} message 
      */
 
     broadcastMessage(message: WebSocketMessage): void {
