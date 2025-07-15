@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Client Test</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        #status { font-weight: bold; }
+        #messages { border: 1px solid #ccc; min-height: 150px; padding: 10px; margin-top: 10px; overflow-y: scroll; background-color: #f9f9f9; }
+        .message-log { margin-bottom: 5px; border-bottom: 1px dotted #eee; padding-bottom: 3px; }
+    </style>
+</head>
+<body>
+    <h1>Vanilla JS WebSocket Client Test</h1>
+    <p>Status: <span id="status" style="color: red;">Disconnected</span></p>
+    <p>Latency: <span id="latency">N/A</span></p>
+
+    <div>
+        <input type="text" id="messageInput" placeholder="Type message..." style="width: 300px; padding: 8px;">
+        <button id="sendMessageBtn" disabled>Send</button>
+        <button id="disconnectBtn" disabled>Disconnect</button>
+        <button id="connectBtn">Connect</button>
+    </div>
+
+    <h2>Received Messages:</h2>
+    <div id="messages"></div>
+
+    <script type="module">
+        import { connect, send, disconnect, isConnected, on, off } from './packages/client/dist/index.mjs';
+
+        const statusSpan = document.getElementById('status');
+        const latencySpan = document.getElementById('latency');
+        const messageInput = document.getElementById('messageInput');
+        const sendMessageBtn = document.getElementById('sendMessageBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const connectBtn = document.getElementById('connectBtn');
+        const messagesDiv = document.getElementById('messages');
+
+        const WS_URL = 'ws://localhost:8080/websocket'; 
+
+        function logMessage(msg) {
+            const p = document.createElement('p');
+            p.className = 'message-log';
+            p.textContent = msg;
+            messagesDiv.prepend(p); 
+        }
+
+        
+        connectBtn.addEventListener('click', () => {
+            connect(WS_URL);
+        });
+
+        disconnectBtn.addEventListener('click', () => {
+            disconnect();
+        });
+
+        sendMessageBtn.addEventListener('click', () => {
+            const content = messageInput.value.trim();
+            if (content) {
+                send({ type: 'chatMessage', content: content, user: 'VanillaJSClient' });
+                messageInput.value = '';
+            }
+        });
+
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessageBtn.click();
+            }
+        });
+
+        // --- Subscribe to WebSocketClient events ---
+        on('connected', () => {
+            statusSpan.textContent = 'Connected';
+            statusSpan.style.color = 'green';
+            sendMessageBtn.disabled = false;
+            disconnectBtn.disabled = false;
+            connectBtn.disabled = true;
+            logMessage('WebSocket: Connected!');
+        });
+
+        on('disconnected', (detail) => {
+            statusSpan.textContent = 'Disconnected';
+            statusSpan.style.color = 'red';
+            sendMessageBtn.disabled = true;
+            disconnectBtn.disabled = true;
+            connectBtn.disabled = false;
+            logMessage(`WebSocket: Disconnected (Code: ${detail.code}, Reason: ${detail.reason})`);
+        });
+
+        on('reconnecting', () => {
+            statusSpan.textContent = 'Reconnecting...';
+            statusSpan.style.color = 'orange';
+            logMessage('WebSocket: Reconnecting...');
+        });
+
+        on('error', (error) => {
+            console.error('WebSocket Error from library:', error);
+            logMessage(`WebSocket Error: ${error.message || 'Unknown error'}`);
+        });
+
+        on('pong', (detail) => {
+            latencySpan.textContent = `${detail.latency}ms`;
+            logMessage(`Received Pong (Latency: ${detail.latency}ms)`);
+        });
+
+        on('chatMessage', (message) => {
+            logMessage(`Chat: ${message.content}`);
+        });
+
+        on('serverInfo', (message) => {
+            logMessage(`Server Info: ${message.content}`);
+        });
+
+        on('message', (message) => {
+         
+        });
+
+        
+        if (isConnected()) {
+            statusSpan.textContent = 'Connected (reloaded)';
+            statusSpan.style.color = 'green';
+            sendMessageBtn.disabled = false;
+            disconnectBtn.disabled = false;
+            connectBtn.disabled = true;
+        } else {
+             statusSpan.textContent = 'Disconnected (ready to connect)';
+             statusSpan.style.color = 'red';
+        }
+    </script>
+</body>
+</html>
